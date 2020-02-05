@@ -3,10 +3,11 @@
  'go_straight':'motion',
  'go_back':'motion',
  'look_here':'motion',
- 'start_learning':'learn',
+ 'start_ggi_learning':'learn',
  'start_follow':'event',
  'stop_follow':'event',
  'finish_voice_control':'event',
  'start_map_creating':'event',
  'add_location':'learn',
- 'save_location':'learn'}
+ 'save_location':'learn',
+ 'save_map':'learn'}

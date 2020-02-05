@@ -19,15 +19,15 @@ from std_msgs.msg import String
 from ggi.srv import ListenCommand, GgiLearning
 from mimi_common_pkg.srv import LocationSetup
 
-sys.path.insert(0, '/home/issei/catkin_ws/src/mimi_common_pkg/scripts/')
+sys.path.insert(0, '/home/athome/catkin_ws/src/mimi_common_pkg/scripts/')
 from common_function import BaseCarrier, speak
 
 
-class ListenCommand(smach.State):
+class Listen(smach.State):
     def __init__(self):
         smach.State.__init__(
                 self,
-                outcomes = ['listen_cmd_failed',
+                outcomes = ['listen_failed',
                             'motion',
                             'learn',
                             'event',
@@ -39,7 +39,7 @@ class ListenCommand(smach.State):
         self.cmd_dict = rosparam.get_param('/voice_cmd')
 
     def execute(self, userdata):
-        rospy.loginfo('Executing state: LISTEN_COMMAND')
+        rospy.loginfo('Executing state: LISTEN')
         result = self.listen_cmd_srv()
         if result.result == True:
             command = result.cmd
@@ -48,12 +48,15 @@ class ListenCommand(smach.State):
             if command in self.cmd_dict:
                 key = self.cmd_dict[command]
                 return key
+            if command == 'finish_voice_control':
+                speak('Good night')
+                return 'listen_finish'
             else:
                 rospy.loginfo(str(command) + ' is not found')
-                return 'listen_cmd_failed'
+                return 'listen_failed'
         else:
             rospy.loginfo('Listening failed')
-            return 'listen_cmd_failed'
+            return 'listen_failed'
 
 
 class Motion(smach.State):
@@ -127,8 +130,7 @@ class Event(smach.State):
     def __init__(self):
         smach.State.__init__(
                 self,
-                outcomes = ['finish_event',
-                            'finish_voice_control'],
+                outcomes = ['finish_event'],
                 input_keys = ['cmd_input'])
         # Publisher
         self.pub_follow_req = rospy.Publisher('/chase/request', String, queue_size = 1)
@@ -160,9 +162,9 @@ def main():
 
     with sm_top:
         smach.StateMachine.add(
-                'LISTEN_COMMAND',
-                ListenCommand(),
-                transitions = {'listen_failed':'ListenCommand',
+                'LISTEN',
+                Listen(),
+                transitions = {'listen_failed':'LISTEN',
                                'motion':'MOTION',
                                'learn':'LEARN',
                                'event':'EVENT',
@@ -172,24 +174,24 @@ def main():
         smach.StateMachine.add(
                 'MOTION',
                 Motion(),
-                transitions = {'finish_motion':'LISTEN_COMMAND'},
+                transitions = {'finish_motion':'LISTEN'},
                 remapping = {'cmd_input':'cmd_name'})
 
         smach.StateMachine.add(
                 'LEARN',
                 Learn(),
-                transitions = {'finish_learn':'LISTEN_COMMAND'},
+                transitions = {'finish_learn':'LISTEN'},
                 remapping = {'cmd_input':'cmd_name'})
 
         smach.StateMachine.add(
                 'EVENT',
                 Event(),
-                transitions = {'finish_event':'LISTEN_COMMAND'},
+                transitions = {'finish_event':'LISTEN'},
                 remapping = {'cmd_input':'cmd_name'})
 
     outcome = sm_top.execute()
 
 
 if __name__ == '__main__':
-    rospy.init_node('voice_control', anonymous = True)
+    rospy.init_node('sm_voice_control', anonymous = True)
     main()

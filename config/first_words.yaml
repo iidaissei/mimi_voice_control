@@ -1,0 +1,13 @@
+{'turn_right':'Rotate right',
+ 'turn_left':'Rotate left',
+ 'go_straight':'Go forward',
+ 'go_back':'Go back',
+ 'look_here':'Yes',
+ 'start_ggi_learning':'Start ggi learning',
+ 'start_follow':'I will follow you',
+ 'stop_follow':'Stop following',
+ 'finish_voice_control':'Goodbye',
+ 'start_map_creating':'Start map creation',
+ 'add_location':'Please tell me the location name',
+ 'save_location':'Please tell me the file name',
+ 'save_map':'Save map'}

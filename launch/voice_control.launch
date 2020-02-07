@@ -1,4 +1,5 @@
 <launch>
     <rosparam file="$(find mimi_voice_control)/config/voice_cmd.yaml" command="load" ns="voice_cmd" />
+    <rosparam file="$(find mimi_voice_control)/config/first_words.yaml" command="load" ns="first_words" />
     <node pkg="mimi_voice_control" name="sm_voice_control" type="sm_voice_control.py" />
 </launch>

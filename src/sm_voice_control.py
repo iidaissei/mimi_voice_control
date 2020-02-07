@@ -23,7 +23,7 @@ sys.path.insert(0, '/home/athome/catkin_ws/src/mimi_common_pkg/scripts/')
 from common_function import BaseCarrier, speak
 
 
-class Listen(smach.State):
+class Listen(smach.State): 
     def __init__(self):
         smach.State.__init__(
                 self,
@@ -32,11 +32,13 @@ class Listen(smach.State):
                             'learn',
                             'event',
                             'listen_finish'],
-                output_keys = ['cmd_output'])
+                output_keys = ['cmd_output',
+                               'words_output'])
         # Service
         self.listen_cmd_srv = rospy.ServiceProxy('/listen_command', ListenCommand)
         # Value
         self.cmd_dict = rosparam.get_param('/voice_cmd')
+        self.words_dict = rosparam.get_param('/first_words')
 
     def execute(self, userdata):
         rospy.loginfo('Executing state: LISTEN')
@@ -44,13 +46,9 @@ class Listen(smach.State):
         if result.result == True:
             command = result.cmd
             userdata.cmd_output = command
-            rospy.loginfo('Command is *' + str(command) + '*')
-            if command == 'finish_voice_control':
-                speak('Goodbye')
-                return 'listen_finish'
-            elif command in self.cmd_dict:
-                key = self.cmd_dict[command]
-                return key
+            userdata.words_output = self.words_dict[command]
+            state = self.cmd_dict[command]
+            return state
         else:
             speak("I could't hear")
             return 'listen_failed'
@@ -61,22 +59,19 @@ class Motion(smach.State):
         smach.State.__init__(
                 self,
                 outcomes = ['finish_motion'],
-                input_keys = ['cmd_input'])
+                input_keys = ['cmd_input', 'words_input'])
         self.bc = BaseCarrier()
 
     def execute(self, userdata):
         rospy.loginfo('Executing state: MOVE')
+        speak(userdata.words_input)
         if userdata.cmd_input == 'turn_right':
-            speak('Rotate right')
             self.bc.angleRotation(-45)
         elif userdata.cmd_input == 'turn_left':
-            speak('Rotate left')
             self.bc.angleRotation(45)
         elif userdata.cmd_input == 'go_straight':
-            speak('Go forward')
             self.bc.translateDist(0.20)
         elif userdata.cmd_input == 'go_back':
-            speak('Go back')
             self.bc.translateDist(-0.20)
         else:
             pass
@@ -87,51 +82,51 @@ class Learn(smach.State):
     def __init__(self):
         smach.State.__init__(
                 self,
-                outcomes = ['finish_learn',
-                            'return_learn'],
-                input_keys = ['cmd_input'])
+                outcomes = ['finish_learn'],
+                input_keys = ['cmd_input', 'words_input'])
         # Survice
         self.ggi_learning_srv = rospy.ServiceProxy('/ggi_learning', GgiLearning)
         self.location_setup_srv = rospy.ServiceProxy('/location_setup', LocationSetup)
         self.yesno_srv = rospy.ServiceProxy('/yes_no', YesNo)
         # Value
-        self.file_name = ''
+        self.file_name = 'none'
 
-    def qAndA(self):
-        speak('Is this corect?')
+    def checkName(self, target_name):
+        speak('Name is ' + target_name)
+        speak('Is this corect ?')
+        result = self.yesno_srv()
+        return result.result
+
+    def canISave(self):
+        speak('Can I save?')
         result = self.yesno_srv()
         return result.result
 
     def execute(self, userdata):
         rospy.loginfo('Executing state: LEARN')
+        speak(userdata.words_input)
         if userdata.cmd_input == 'add_location':
-            speak('Please tell me the location name')
             location_name = 'shelf'# 場所名サーバー
-            speak('Location is '+ location_name)
-            if self.qAndA():
-                # self.location_setup_srv(state = 'add', name = location_name)
+            if self.checkName(location_name):
+                self.location_setup_srv(state = 'add', name = location_name)
                 speak('Location added')
-                return 'finish_learn'
             else:
-                speak("Oops!")
-                return 'return_learn'
+                speak('Say the command again')
         elif userdata.cmd_input == 'save_location':
-            speak('Please tell me the file name')
-            #名前聞くサービス
-            # self.location_setup_srv(state = 'save', name = file_name)
-            self.file_name = 'gpsr'
-            speak('File name is ' + self.file_name)
-            if self.qAndA():
+            self.file_name = 'gpsr'# 名前聞くサービス
+            if self.checkName(self.location_name):
+                self.location_setup_srv(state = 'save', name = self.file_name)
                 speak('Location saved')
-                return 'finish_learn'
             else:
-                speak('Oops!')
-                return 'return_learn'
+                speak('Say the command again')
         elif userdata.cmd_input == 'save_map':
-            speak('Save the map as ' + self.file_name)
-            sp.Popen(['rosrun','map_server','map_saver','-f','/home/athome/map/'+ self.file_name])
-            rospy.sleep(1.0)
-            speak('Map saved')
+            if self.canISave():
+                speak('Save the map as ' + self.file_name)
+                sp.Popen(['rosrun','map_server','map_saver','-f','/home/athome/map/'+ self.file_name])
+                rospy.sleep(0.5)
+                speak('Map saved')
+            else:
+                speak("Don't saved")
         elif userdata.cmd_input == 'start_ggi_learning':
             #self.ggi_learning_srv()
             speak('start ggi learning')
@@ -142,8 +137,8 @@ class Event(smach.State):
     def __init__(self):
         smach.State.__init__(
                 self,
-                outcomes = ['finish_event'],
-                input_keys = ['cmd_input'])
+                outcomes = ['finish_event', 'finish_voice_control'],
+                input_keys = ['cmd_input', 'words_input'])
         # Publisher
         self.pub_follow_req = rospy.Publisher('/chase/request', String, queue_size = 1)
 
@@ -163,12 +158,14 @@ class Event(smach.State):
             # sp.Popen(['roslaunch','turtlebot_teleop','keyboard_teleop.launch'])
             rospy.sleep(0.5)
             sp.Popen(['roslaunch','turtlebot_rviz_launchers','view_navigation.launch'])
+        elif userdata.cmd_input == 'finish_voice_control':
+            return 'finish_voice_control'
             
         return 'finish_event'
 
 
 def main():
-    sm_top = smach.StateMachine(outcomes = ['finish_voice_control'])
+    sm_top = smach.StateMachine(outcomes = ['finish_sm_top'])
 
     with sm_top:
         smach.StateMachine.add(
@@ -177,28 +174,31 @@ def main():
                 transitions = {'listen_failed':'LISTEN',
                                'motion':'MOTION',
                                'learn':'LEARN',
-                               'event':'EVENT',
-                               'listen_finish':'finish_voice_control'},
-                remapping = {'cmd_output':'cmd_name'})
+                               'event':'EVENT'},
+                remapping = {'cmd_output':'cmd_name',
+                             'words_output':'words'})
 
         smach.StateMachine.add(
                 'MOTION',
                 Motion(),
                 transitions = {'finish_motion':'LISTEN'},
-                remapping = {'cmd_input':'cmd_name'})
+                remapping = {'cmd_input':'cmd_name',
+                             'words_input':'words'})
 
         smach.StateMachine.add(
                 'LEARN',
                 Learn(),
-                transitions = {'finish_learn':'LISTEN',
-                               'return_learn':'LEARN'},
-                remapping = {'cmd_input':'cmd_name'})
+                transitions = {'finish_learn':'LISTEN'},
+                remapping = {'cmd_input':'cmd_name',
+                             'words_input':'words'})
 
         smach.StateMachine.add(
                 'EVENT',
                 Event(),
-                transitions = {'finish_event':'LISTEN'},
-                remapping = {'cmd_input':'cmd_name'})
+                transitions = {'finish_event':'LISTEN',
+                               'finish_voice_control':'finish_sm_top'},
+                remapping = {'cmd_input':'cmd_name',
+                             'words_input':'words'})
 
     outcome = sm_top.execute()
 

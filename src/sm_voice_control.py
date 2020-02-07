@@ -30,8 +30,7 @@ class Listen(smach.State):
                 outcomes = ['listen_failed',
                             'motion',
                             'learn',
-                            'event',
-                            'listen_finish'],
+                            'event'],
                 output_keys = ['cmd_output',
                                'words_output'])
         # Service
@@ -108,21 +107,21 @@ class Learn(smach.State):
         if userdata.cmd_input == 'add_location':
             location_name = 'shelf'# 場所名サーバー
             if self.checkName(location_name):
-                self.location_setup_srv(state = 'add', name = location_name)
+                # self.location_setup_srv(state = 'add', name = location_name)
                 speak('Location added')
             else:
                 speak('Say the command again')
         elif userdata.cmd_input == 'save_location':
             self.file_name = 'gpsr'# 名前聞くサービス
-            if self.checkName(self.location_name):
-                self.location_setup_srv(state = 'save', name = self.file_name)
+            if self.checkName(self.file_name):
+                # self.location_setup_srv(state = 'save', name = self.file_name)
                 speak('Location saved')
             else:
                 speak('Say the command again')
         elif userdata.cmd_input == 'save_map':
+            speak('Save the map as ' + self.file_name)
             if self.canISave():
-                speak('Save the map as ' + self.file_name)
-                sp.Popen(['rosrun','map_server','map_saver','-f','/home/athome/map/'+ self.file_name])
+                # sp.Popen(['rosrun','map_server','map_saver','-f','/home/athome/map/'+ self.file_name])
                 rospy.sleep(0.5)
                 speak('Map saved')
             else:
@@ -144,23 +143,20 @@ class Event(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state: FOLLOW')
+        speak(userdata.words_input)
         if userdata.cmd_input == 'start_follow':
             self.pub_follow_req.publish('start')
-            speak('I will follow you')
         elif userdata.cmd_input == 'stop_follow':
             self.pub_follow_req.publish('stop')
-            speak('Stop following')
         elif userdata.cmd_input == 'start_map_creating':
-            speak('Start map creating')
             rospy.sleep(0.1)
-            sp.Popen(['roslaunch','turtlebot_navigation','gmapping_demo.launch'])
+            # sp.Popen(['roslaunch','turtlebot_navigation','gmapping_demo.launch'])
             rospy.sleep(0.5)
             # sp.Popen(['roslaunch','turtlebot_teleop','keyboard_teleop.launch'])
             rospy.sleep(0.5)
-            sp.Popen(['roslaunch','turtlebot_rviz_launchers','view_navigation.launch'])
+            # sp.Popen(['roslaunch','turtlebot_rviz_launchers','view_navigation.launch'])
         elif userdata.cmd_input == 'finish_voice_control':
             return 'finish_voice_control'
-            
         return 'finish_event'
 
 

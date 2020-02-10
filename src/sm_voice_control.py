@@ -160,8 +160,7 @@ class Event(smach.State):
             # sp.Popen(['roslaunch','turtlebot_teleop','keyboard_teleop.launch'])
             rospy.sleep(0.5)
             # sp.Popen(['roslaunch','turtlebot_rviz_launchers','view_navigation.launch'])
-
-        elif userdata.cmd_input == 'can_you_help_me':
+        elif userdata.cmd_input == 'hey_mimi':
             self.ap_result = self.ap_listen_srv()
             if self.ap_result.result:
                 action = self.ap_result.action

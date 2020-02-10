@@ -147,7 +147,7 @@ class Event(smach.State):
         self.ap_result = ActionPlan
 
     def execute(self, userdata):
-        rospy.loginfo('Executing state: FOLLOW')
+        rospy.loginfo('Executing state: EVENT')
         speak(userdata.words_input)
         if userdata.cmd_input == 'start_follow':
             self.pub_follow_req.publish('start')
@@ -163,9 +163,11 @@ class Event(smach.State):
 
         elif userdata.cmd_input == 'can_you_help_me':
             self.ap_result = self.ap_listen_srv()
-            if sefl.ap_result.result:
+            if self.ap_result.result:
                 action = self.ap_result.action
                 data = self.ap_result.data
+                print action
+                print data
                 exeActionPlanAC(action, data)
             else:
                 speak("Say the command again")

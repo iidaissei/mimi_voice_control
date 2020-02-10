@@ -10,4 +10,5 @@
  'start_map_creating':'event',
  'add_location':'learn',
  'save_location':'learn',
- 'save_map':'learn'}
+ 'save_map':'learn',
+ 'can_you_help_me':'event'}

@@ -16,11 +16,13 @@ import rosparam
 import smach
 import smach_ros
 from std_msgs.msg import String
+from gpsr.srv import ActionPlan
 from ggi.srv import ListenCommand, GgiLearning, YesNo
 from mimi_common_pkg.srv import LocationSetup
 
 sys.path.insert(0, '/home/athome/catkin_ws/src/mimi_common_pkg/scripts/')
 from common_function import BaseCarrier, speak
+from common_action_client import *
 
 
 class Listen(smach.State): 
@@ -140,6 +142,9 @@ class Event(smach.State):
                 input_keys = ['cmd_input', 'words_input'])
         # Publisher
         self.pub_follow_req = rospy.Publisher('/chase/request', String, queue_size = 1)
+        # ServiceProxy
+        self.ap_listen_srv = rospy.ServiceProxy('/gpsr/actionplan', ActionPlan)
+        self.ap_result = ActionPlan
 
     def execute(self, userdata):
         rospy.loginfo('Executing state: FOLLOW')
@@ -155,6 +160,15 @@ class Event(smach.State):
             # sp.Popen(['roslaunch','turtlebot_teleop','keyboard_teleop.launch'])
             rospy.sleep(0.5)
             # sp.Popen(['roslaunch','turtlebot_rviz_launchers','view_navigation.launch'])
+
+        elif userdata.cmd_input == 'can_you_help_me':
+            self.ap_result = self.ap_listen_srv()
+            if sefl.ap_result.result:
+                action = self.ap_result.action
+                data = self.ap_result.data
+                exeActionPlanAC(action, data)
+            else:
+                speak("Say the command again")
         elif userdata.cmd_input == 'finish_voice_control':
             return 'finish_voice_control'
         return 'finish_event'

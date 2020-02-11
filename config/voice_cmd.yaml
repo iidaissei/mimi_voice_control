@@ -13,5 +13,5 @@
  'save_map':'learn',
  'hey_mimi':'event',
  'what_time_is_it':'stask',
- 'what_is_date_today':'stask',
+ 'what_is_the_date_today':'stask',
  'i_have_a_message':'stask'}

@@ -24,6 +24,9 @@ sys.path.insert(0, '/home/athome/catkin_ws/src/mimi_common_pkg/scripts/')
 from common_function import BaseCarrier, speak
 from common_action_client import *
 
+sys.path.insert(0, '/home/athome/catkin_ws/src/mimi_voice_control/src')
+from vc_common_function import *
+
 
 class Listen(smach.State): 
     def __init__(self):
@@ -79,61 +82,6 @@ class Motion(smach.State):
         return 'finish_motion'
 
 
-class Learn(smach.State):
-    def __init__(self):
-        smach.State.__init__(
-                self,
-                outcomes = ['finish_learn'],
-                input_keys = ['cmd_input', 'words_input'])
-        # Survice
-        self.ggi_learning_srv = rospy.ServiceProxy('/ggi_learning', GgiLearning)
-        self.location_setup_srv = rospy.ServiceProxy('/location_setup', LocationSetup)
-        self.yesno_srv = rospy.ServiceProxy('/yes_no', YesNo)
-        # Value
-        self.file_name = 'none'
-
-    def checkName(self, target_name):
-        speak('Name is ' + target_name)
-        speak('Is this corect ?')
-        result = self.yesno_srv()
-        return result.result
-
-    def canISave(self):
-        speak('Can I save?')
-        result = self.yesno_srv()
-        return result.result
-
-    def execute(self, userdata):
-        rospy.loginfo('Executing state: LEARN')
-        speak(userdata.words_input)
-        if userdata.cmd_input == 'add_location':
-            location_name = 'shelf'# 場所名サーバー
-            if self.checkName(location_name):
-                # self.location_setup_srv(state = 'add', name = location_name)
-                speak('Location added')
-            else:
-                speak('Say the command again')
-        elif userdata.cmd_input == 'save_location':
-            self.file_name = 'gpsr'# 名前聞くサービス
-            if self.checkName(self.file_name):
-                # self.location_setup_srv(state = 'save', name = self.file_name)
-                speak('Location saved')
-            else:
-                speak('Say the command again')
-        elif userdata.cmd_input == 'save_map':
-            speak('Save the map as ' + self.file_name)
-            if self.canISave():
-                # sp.Popen(['rosrun','map_server','map_saver','-f','/home/athome/map/'+ self.file_name])
-                rospy.sleep(0.5)
-                speak('Map saved')
-            else:
-                speak("Don't saved")
-        elif userdata.cmd_input == 'start_ggi_learning':
-            #self.ggi_learning_srv()
-            speak('start ggi learning')
-        return 'finish_learn'
-
-
 class SimpleTask(smach.State):
     def __init__(self):
         smach.State.__init__(
@@ -144,7 +92,7 @@ class SimpleTask(smach.State):
         self.lis = ListenTool()
 
     def execute(self, userdata):
-        rospy.loginfo('Executing state: MOVE')
+        rospy.loginfo('Executing state: STASK')
         speak(userdata.words_input)
         if userdata.cmd_input == 'what_is_the_date_today':
             date = self.gdt.getDate()
@@ -162,6 +110,50 @@ class SimpleTask(smach.State):
             else:
                 speak('fuck')
         return 'finish_stask'
+
+
+class Learn(smach.State):
+    def __init__(self):
+        smach.State.__init__(
+                self,
+                outcomes = ['finish_learn'],
+                input_keys = ['cmd_input', 'words_input'])
+        # Survice
+        self.ggi_learning_srv = rospy.ServiceProxy('/ggi_learning', GgiLearning)
+        self.location_setup_srv = rospy.ServiceProxy('/location_setup', LocationSetup)
+        # Value
+        self.file_name = 'none'
+        self.lis = ListenTool()
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state: LEARN')
+        speak(userdata.words_input)
+        if userdata.cmd_input == 'add_location':
+            location_name = 'shelf'# 場所名サーバー
+            if self.lis.checkName(location_name):
+                # self.location_setup_srv(state = 'add', name = location_name)
+                speak('Location added')
+            else:
+                speak('Say the command again')
+        elif userdata.cmd_input == 'save_location':
+            self.file_name = 'gpsr'# 名前聞くサービス
+            if self.lis.checkName(self.file_name):
+                # self.location_setup_srv(state = 'save', name = self.file_name)
+                speak('Location saved')
+            else:
+                speak('Say the command again')
+        elif userdata.cmd_input == 'save_map':
+            speak('Save the map as ' + self.file_name)
+            if self.lis.canISave():
+                # sp.Popen(['rosrun','map_server','map_saver','-f','/home/athome/map/'+ self.file_name])
+                rospy.sleep(0.5)
+                speak('Map saved')
+            else:
+                speak("Don't saved")
+        elif userdata.cmd_input == 'start_ggi_learning':
+            #self.ggi_learning_srv()
+            speak('start ggi learning')
+        return 'finish_learn'
 
 
 class Event(smach.State):

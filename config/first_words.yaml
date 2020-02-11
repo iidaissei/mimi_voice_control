@@ -11,4 +11,7 @@
  'add_location':'Please tell me the location name',
  'save_location':'Please tell me the file name',
  'save_map':'Save map',
- 'hey_mimi':'Yes, master'}
+ 'hey_mimi':'Yes, master',
+ 'what_time_is_it':"It's",
+ 'what_is_date_today':'Today is',
+ 'i_have_a_message':'OK'}

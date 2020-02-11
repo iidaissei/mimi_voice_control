@@ -134,6 +134,36 @@ class Learn(smach.State):
         return 'finish_learn'
 
 
+class SimpleTask(smach.State):
+    def __init__(self):
+        smach.State.__init__(
+                self,
+                outcomes = ['finish_stask'],
+                input_keys = ['cmd_input', 'words_input'])
+        self.gdt = GetDateTime()
+        self.lis = ListenTool()
+
+    def execute(self, userdata):
+        rospy.loginfo('Executing state: MOVE')
+        speak(userdata.words_input)
+        if userdata.cmd_input == 'what_is_the_date_today':
+            date = self.gdt.getDate()
+            speak(date)
+        elif userdata.cmd_input == 'what_time_is_it':
+            time = self.gdt.getTime()
+            speak(time)
+        elif userdata.cmd_input == 'i_have_a_message':
+            speak('Please speak a message')
+            recordingMessage()
+            speak('Repeat the message')
+            playMessage()
+            if self.lis.isThisOK():
+                speak('I save message')
+            else:
+                speak('fuck')
+        return 'finish_stask'
+
+
 class Event(smach.State):
     def __init__(self):
         smach.State.__init__(
@@ -184,6 +214,7 @@ def main():
                 Listen(),
                 transitions = {'listen_failed':'LISTEN',
                                'motion':'MOTION',
+                               'stask':'STASK',
                                'learn':'LEARN',
                                'event':'EVENT'},
                 remapping = {'cmd_output':'cmd_name',
@@ -195,6 +226,14 @@ def main():
                 transitions = {'finish_motion':'LISTEN'},
                 remapping = {'cmd_input':'cmd_name',
                              'words_input':'words'})
+
+        smach.StateMachine.add(
+                'STASK',
+                STask(),
+                transitions = {'finish_stask':'LISTEN'},
+                remapping = {'cmd_input':'cmd_name',
+                             'words_input':'words'})
+
 
         smach.StateMachine.add(
                 'LEARN',

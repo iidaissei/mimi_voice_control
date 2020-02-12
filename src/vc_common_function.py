@@ -8,11 +8,13 @@
 #-----------------------------------------------------------
 
 # Python
-import datetime
-import pyaudio
 import sys
 import time
 import wave
+import pygame
+import datetime
+import pyaudio
+from mutagen.mp3 import MP3 as mp3
 
 # ROS
 import rospy
@@ -117,26 +119,14 @@ def playMessage(wav_name):
     p.terminate()
 
 
-def playMusic(wav_name):
-    try:
-        wf = wave.open(
-        '/home/athome/catkin_ws/src/mimi_voice_control/wav_file/'+ wav_name, "r")
-    except FileNotFoundError:
-        print("[Error 404] No such file")
+def bgmPlay(filename):
+    # 再生処理
+    outf = '/home/athome/catkin_ws/src/mimi_voice_control/wav_file/' + filename
+    pygame.mixer.init()
+    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.load(outf)
+    mp3_length = mp3(outf).info.length
+    pygame.mixer.music.play(1)
+    # rospy.sleep(mp3_length)
+    # pygame.mixer.music.fadeout(5.0)
 
-    # ストリームを開く
-    p = pyaudio.PyAudio()
-    stream = p.open(
-            format = p.get_format_from_width(wf.getsampwidth()),
-            channels = wf.getnchannels(),
-            rate = wf.getframerate(),
-            output = True)
-
-    # 音声を再生
-    # chunk = 1024
-    data = wf.readframes(chunk)
-    while data != '':
-        stream.write(data)
-        data = wf.readframes(chunk)
-    # stream.close()
-    # p.terminate()

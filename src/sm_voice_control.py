@@ -109,8 +109,8 @@ class STask(smach.State):
             else:
                 speak('fuck')
         elif userdata.cmd_input == 'start_happy_time':
-            speak("Welocme to Tokyo Disneyland !!")
-            playMusic('ElectrricalParade.wav')
+            speak("Welcome to Tokyo Disneyland !!")
+            bgmPlay('happy_time.mp3')
         elif userdata.cmd_input == 'finish_voice_control':
             playMessage('goodbye.wav')
             return 'finish_voice_control'

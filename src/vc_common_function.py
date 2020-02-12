@@ -41,7 +41,7 @@ class ListenTool():
         return result.result
 
     def checkName(self, target_name):
-        speak('Name is ' + target_name)
+        speak('Name is ' + str(target_name))
         speak('Is this corect ?')
         result = self.yesno_srv()
         return result.result

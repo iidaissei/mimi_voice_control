@@ -126,6 +126,7 @@ class Learn(smach.State):
         # Survice
         self.ggi_learning_srv = rospy.ServiceProxy('/ggi_learning', GgiLearning)
         self.location_setup_srv = rospy.ServiceProxy('/location_setup', LocationSetup)
+        self.listen_cmd_srv = rospy.ServiceProxy('/listen_command', ListenCommand)
         # Value
         self.file_name = 'none'
         self.lis = ListenTool()
@@ -134,14 +135,16 @@ class Learn(smach.State):
         rospy.loginfo('Executing state: LEARN')
         speak(userdata.words_input)
         if userdata.cmd_input == 'append location name':
-            location_name = 'shelf'# 場所名サーバー
+            location_name = self.listen_cmd_srv (file_name = 'location_name').cmd
+            print location_name
             if self.lis.checkName(location_name):
                 # self.location_setup_srv(state = 'add', name = location_name)
                 speak('Location added')
             else:
                 speak('Say the command again')
         elif userdata.cmd_input == 'save location':
-            self.file_name = 'gpsr'# 名前聞くサービス
+            self.file_name = self.listen_cmd_srv(file_name = 'map_name').cmd
+            print self.file_name
             if self.lis.checkName(self.file_name):
                 # self.location_setup_srv(state = 'save', name = self.file_name)
                 speak('Location saved')
@@ -182,11 +185,11 @@ class Event(smach.State):
             self.pub_follow_req.publish('stop')
         elif userdata.cmd_input == 'start map creating':
             rospy.sleep(0.1)
-            # sp.Popen(['roslaunch','turtlebot_navigation','gmapping_demo.launch'])
+            sp.Popen(['roslaunch','turtlebot_navigation','gmapping_demo.launch'])
             rospy.sleep(0.5)
-            # sp.Popen(['roslaunch','turtlebot_teleop','keyboard_teleop.launch'])
+            sp.Popen(['roslaunch','turtlebot_teleop','keyboard_teleop.launch'])
             rospy.sleep(0.5)
-            # sp.Popen(['roslaunch','turtlebot_rviz_launchers','view_navigation.launch'])
+            sp.Popen(['roslaunch','turtlebot_rviz_launchers','view_navigation.launch'])
         elif userdata.cmd_input == 'hey mimi':
             self.ap_result = self.ap_listen_srv()
             if self.ap_result.result:

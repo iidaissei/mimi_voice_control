@@ -6,7 +6,7 @@
  'start ggi learning':'learn',
  'follow me':'event',
  'stop following':'event',
- 'finish voice_control':'stask',
+ 'finish voice control':'stask',
  'start map creating':'event',
  'append location name':'learn',
  'save location':'learn',

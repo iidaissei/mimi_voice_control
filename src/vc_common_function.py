@@ -8,11 +8,13 @@
 #-----------------------------------------------------------
 
 # Python
-import datetime
-import pyaudio
 import sys
 import time
 import wave
+import pygame
+import datetime
+import pyaudio
+from mutagen.mp3 import MP3 as mp3
 
 # ROS
 import rospy
@@ -140,3 +142,15 @@ def playMusic(wav_name):
         data = wf.readframes(chunk)
     # stream.close()
     # p.terminate()
+
+def bgmPlay(filename):
+    # 再生処理
+    outf = '/home/athome/catkin_ws/src/mimi_voice_control/mp3_file/' + filename
+    pygame.mixer.init()
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.load(outf)
+    mp3_length = mp3(outf).info.length
+    pygame.mixer.music.play(1)
+    rospy.sleep(mp3_length)
+    pygame.mixer.music.fedeout(5.0)
+

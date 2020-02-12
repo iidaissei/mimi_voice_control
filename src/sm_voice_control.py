@@ -47,7 +47,7 @@ class Listen(smach.State):
 
     def execute(self, userdata):
         rospy.loginfo('Executing state: LISTEN')
-        result = self.listen_cmd_srv()
+        result = self.listen_cmd_srv(file_name = 'voice_cmd')
         if result.result == True:
             command = result.cmd
             userdata.cmd_output = command

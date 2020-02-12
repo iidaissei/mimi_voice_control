@@ -35,7 +35,8 @@ class Listen(smach.State):
                 outcomes = ['listen_failed',
                             'motion',
                             'learn',
-                            'event'],
+                            'event',
+                            'stask'],
                 output_keys = ['cmd_output',
                                'words_output'])
         # Service
@@ -82,33 +83,34 @@ class Motion(smach.State):
         return 'finish_motion'
 
 
-class SimpleTask(smach.State):
+class STask(smach.State):
     def __init__(self):
         smach.State.__init__(
                 self,
-                outcomes = ['finish_stask'],
+                outcomes = ['finish_stask', 'finish_voice_control'],
                 input_keys = ['cmd_input', 'words_input'])
-        self.gdt = GetDateTime()
         self.lis = ListenTool()
 
     def execute(self, userdata):
         rospy.loginfo('Executing state: STASK')
-        speak(userdata.words_input)
         if userdata.cmd_input == 'what_is_the_date_today':
-            date = self.gdt.getDate()
-            speak(date)
+            date = getDate()
+            speak("It's " + date)
         elif userdata.cmd_input == 'what_time_is_it':
-            time = self.gdt.getTime()
-            speak(time)
+            time = getTime()
+            speak("It's " + time)
         elif userdata.cmd_input == 'i_have_a_message':
             speak('Please speak a message')
             recordingMessage()
             speak('Repeat the message')
-            playMessage()
+            playMessage('message.wav')
             if self.lis.isThisOK():
                 speak('I save message')
             else:
                 speak('fuck')
+        elif userdata.cmd_input == 'finish_voice_control':
+            playMessage('goodbye.wav')
+            return 'finish_voice_control'
         return 'finish_stask'
 
 
@@ -160,7 +162,7 @@ class Event(smach.State):
     def __init__(self):
         smach.State.__init__(
                 self,
-                outcomes = ['finish_event', 'finish_voice_control'],
+                outcomes = ['finish_event'],
                 input_keys = ['cmd_input', 'words_input'])
         # Publisher
         self.pub_follow_req = rospy.Publisher('/chase/request', String, queue_size = 1)
@@ -192,8 +194,6 @@ class Event(smach.State):
                 exeActionPlanAC(action, data)
             else:
                 speak("Say the command again")
-        elif userdata.cmd_input == 'finish_voice_control':
-            return 'finish_voice_control'
         return 'finish_event'
 
 
@@ -208,7 +208,8 @@ def main():
                                'motion':'MOTION',
                                'stask':'STASK',
                                'learn':'LEARN',
-                               'event':'EVENT'},
+                               'event':'EVENT',
+                               'stask':'STASK'},
                 remapping = {'cmd_output':'cmd_name',
                              'words_output':'words'})
 
@@ -222,7 +223,8 @@ def main():
         smach.StateMachine.add(
                 'STASK',
                 STask(),
-                transitions = {'finish_stask':'LISTEN'},
+                transitions = {'finish_stask':'LISTEN',
+                               'finish_voice_control':'finish_sm_top'},
                 remapping = {'cmd_input':'cmd_name',
                              'words_input':'words'})
 
@@ -237,8 +239,7 @@ def main():
         smach.StateMachine.add(
                 'EVENT',
                 Event(),
-                transitions = {'finish_event':'LISTEN',
-                               'finish_voice_control':'finish_sm_top'},
+                transitions = {'finish_event':'LISTEN'},
                 remapping = {'cmd_input':'cmd_name',
                              'words_input':'words'})
 

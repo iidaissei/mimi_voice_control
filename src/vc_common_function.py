@@ -22,8 +22,11 @@ chunk = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100
-RECORD_SECONDS = 3
-OUTFILE = '/home/issei/catkin_ws/src/mimi_voice_control/wav_file/message.wav'
+RECORD_SECONDS = 2
+OUTFILE = '/home/athome/catkin_ws/src/mimi_voice_control/wav_file/message.wav'
+
+sys.path.insert(0, '/home/athome/catkin_ws/src/mimi_common_pkg/scripts/')
+from common_function import *
 
 
 class ListenTool():
@@ -47,19 +50,15 @@ class ListenTool():
         return result.result
 
 
-class GetDateTime():
-    def __init__(self):
-        self.dt_now = datetime.datetime.now()
+def getDate():
+    dt_now = datetime.datetime.now()
+    date_now = dt_now.strftime('%A,%B%d,%Y')
+    return date_now
 
-    def getDate(self):
-        date_now = self.dt_now.strftime('%A,%B%d,%Y')
-        print date_now
-        return date_now
-
-    def getTime(self):
-        time_now = self.dt_now.strftime('%H,%M')
-        print time_now
-        return time_now
+def getTime():
+    dt_now = datetime.datetime.now()
+    time_now = dt_now.strftime('%H,%M')
+    return time_now
 
 
 def recordingMessage():
@@ -93,9 +92,10 @@ def recordingMessage():
     print 'finish save'
 
 
-def playMessage():
+def playMessage(wav_name):
     try:
-        wf = wave.open(OUTFILE, "r")
+        wf = wave.open(
+        '/home/athome/catkin_ws/src/mimi_voice_control/wav_file/'+ wav_name, "r")
     except FileNotFoundError:
         print("[Error 404] No such file")
 

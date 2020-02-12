@@ -6,7 +6,7 @@
  'start_ggi_learning':'learn',
  'start_follow':'event',
  'stop_follow':'event',
- 'finish_voice_control':'event',
+ 'finish_voice_control':'stask',
  'start_map_creating':'event',
  'add_location':'learn',
  'save_location':'learn',

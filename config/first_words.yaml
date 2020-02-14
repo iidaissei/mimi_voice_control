@@ -15,4 +15,5 @@
  'what time is it':"It's",
  'what is the date today':"It's",
  'i have a message':'OK',
- 'start happy time':"I'm MickeyMouse!"}
+ 'start happy time':"I'm MickeyMouse!",
+ 'start navigation':'Start navigation'}

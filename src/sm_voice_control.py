@@ -90,6 +90,8 @@ class STask(smach.State):
                 outcomes = ['finish_stask', 'finish_voice_control'],
                 input_keys = ['cmd_input', 'words_input'])
         self.lis = ListenTool()
+        # Survice
+        self.listen_cmd_srv = rospy.ServiceProxy('/listen_command', ListenCommand)
 
     def execute(self, userdata):
         rospy.loginfo('Executing state: STASK')
@@ -99,6 +101,13 @@ class STask(smach.State):
         elif userdata.cmd_input == 'what time is it':
             time = getTime()
             speak("It's " + time)
+        elif userdata.cmd_input == 'start navigation':
+            speak('Where should i go?')
+            location_name = self.listen_cmd_srv (file_name = 'location_name').cmd
+            coord_list = searchLocationName('demo', location_name)
+            speak('I move to ' + location_name)
+            navigationAC(coord_list)
+            speak('I arrived ' + location_name)
         elif userdata.cmd_input == 'i have a message':
             speak('Please speak a message')
             recordingMessage()
@@ -107,12 +116,13 @@ class STask(smach.State):
             if self.lis.isThisOK():
                 speak('I save message')
             else:
-                speak('fuck')
+                speak('nononono')
         elif userdata.cmd_input == 'start happy time':
             speak("Welcome to Tokyo Disneyland !!")
             bgmPlay('happy_time.mp3')
         elif userdata.cmd_input == 'finish voice control':
-            playMessage('goodbye.wav')
+            # playMessage('goodbye.wav')
+            speak('Goodbye')
             return 'finish_voice_control'
         return 'finish_stask'
 
@@ -136,9 +146,9 @@ class Learn(smach.State):
         speak(userdata.words_input)
         if userdata.cmd_input == 'append location name':
             location_name = self.listen_cmd_srv (file_name = 'location_name').cmd
-            print location_name
             if self.lis.checkName(location_name):
-                # self.location_setup_srv(state = 'add', name = location_name)
+                print type(location_name)
+                self.location_setup_srv(state = 'add', name = location_name)
                 speak('Location added')
             else:
                 speak('Say the command again')
@@ -146,14 +156,14 @@ class Learn(smach.State):
             self.file_name = self.listen_cmd_srv(file_name = 'map_name').cmd
             print self.file_name
             if self.lis.checkName(self.file_name):
-                # self.location_setup_srv(state = 'save', name = self.file_name)
+                self.location_setup_srv(state = 'save', name = self.file_name)
                 speak('Location saved')
             else:
                 speak('Say the command again')
         elif userdata.cmd_input == 'save map':
             speak('Save the map as ' + self.file_name)
             if self.lis.canISave():
-                # sp.Popen(['rosrun','map_server','map_saver','-f','/home/athome/map/'+ self.file_name])
+                sp.Popen(['rosrun','map_server','map_saver','-f','/home/athome/map/'+ self.file_name])
                 rospy.sleep(0.5)
                 speak('Map saved')
             else:

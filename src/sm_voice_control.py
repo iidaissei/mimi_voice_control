@@ -224,8 +224,7 @@ def main():
                                'motion':'MOTION',
                                'stask':'STASK',
                                'learn':'LEARN',
-                               'event':'EVENT',
-                               'stask':'STASK'},
+                               'event':'EVENT'},
                 remapping = {'cmd_output':'cmd_name',
                              'words_output':'words'})
 

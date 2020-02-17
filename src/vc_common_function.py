@@ -24,7 +24,7 @@ chunk = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100
-RECORD_SECONDS = 2
+RECORD_SECONDS = 10
 OUTFILE = '/home/athome/catkin_ws/src/mimi_voice_control/wav_file/message.wav'
 
 sys.path.insert(0, '/home/athome/catkin_ws/src/mimi_common_pkg/scripts/')

@@ -16,7 +16,7 @@ import smach_ros
 from std_msgs.msg import String
 from std_srvs.srv import Empty, EmptyResponse
 from mimi_common_pkg.srv import LocationSetup
-from ggi.srv import ListenCommand, GgiLearning, YesNo
+from voice_common_pkg.srv import ListenCommand, GgiLearning, YesNo
 
 sys.path.insert(0, '/home/athome/catkin_ws/src/mimi_common_pkg/scripts/')
 from common_function import BaseCarrier, speak

@@ -133,7 +133,7 @@ class Learn(smach.State):
                 self,
                 outcomes = ['finish_learn'],
                 input_keys = ['cmd_input', 'words_input'])
-        # Survice
+        # Service
         self.ggi_learning_srv = rospy.ServiceProxy('/ggi_learning', GgiLearning)
         self.location_setup_srv = rospy.ServiceProxy('/location_setup', LocationSetup)
         self.listen_cmd_srv = rospy.ServiceProxy('/listen_command', ListenCommand)

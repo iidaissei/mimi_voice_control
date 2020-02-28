@@ -11,7 +11,6 @@
  'append location name':'learn',
  'save location':'learn',
  'save map':'learn',
- 'hey mimi':'event',
  'what time is it':'stask',
  'what is the date today':'stask',
  'i have a message':'stask',

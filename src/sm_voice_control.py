@@ -147,14 +147,12 @@ class Learn(smach.State):
         if userdata.cmd_input == 'append location name':
             location_name = self.listen_cmd_srv (file_name = 'location_name').cmd
             if self.lis.checkName(location_name):
-                print type(location_name)
                 self.location_setup_srv(state = 'add', name = location_name)
                 speak('Location added')
             else:
                 speak('Say the command again')
         elif userdata.cmd_input == 'save location':
             self.file_name = self.listen_cmd_srv(file_name = 'map_name').cmd
-            print self.file_name
             if self.lis.checkName(self.file_name):
                 self.location_setup_srv(state = 'save', name = self.file_name)
                 speak('Location saved')
@@ -224,8 +222,7 @@ def main():
                                'motion':'MOTION',
                                'stask':'STASK',
                                'learn':'LEARN',
-                               'event':'EVENT',
-                               'stask':'STASK'},
+                               'event':'EVENT'},
                 remapping = {'cmd_output':'cmd_name',
                              'words_output':'words'})
 

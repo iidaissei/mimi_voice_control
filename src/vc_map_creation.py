@@ -52,13 +52,15 @@ class ExeCommand(smach.State):
 
     def checkName(self, name):
         speak('Name is ' + name)
-        speak('Is this OK')
+        speak('Is this correct?')
         result = self.yesno_srv().result
+        print result
         return result
 
     def execute(self, userdata):
         rospy.loginfo('Executing state: EXE_COMMAND')
         if userdata.cmd_input == 'append location name':
+            speak('Please say the location name')
             location_name = self.listen_cmd_srv (file_name = 'location_name').cmd
             if self.checkName(location_name):
                 self.location_setup_srv(state = 'add', name = location_name)
@@ -66,6 +68,7 @@ class ExeCommand(smach.State):
             else:
                 speak('Say the command again')
         elif userdata.cmd_input == 'save location':
+            speak('Please say the file name')
             file_name = self.listen_cmd_srv(file_name = 'map_name').cmd
             if self.checkName(file_name):
                 self.location_setup_srv(state = 'save', name = file_name)
@@ -74,12 +77,13 @@ class ExeCommand(smach.State):
                 rospy.sleep(0.5)
                 speak('Saved map as ' + file_name)
             else:
-                speak('Added location name')
+                speak('Say the command again')
         elif userdata.cmd_input == 'finish voice control':
             speak('Bye')
             return 'vc_finish'
         else:
             pass
+        return 'exe_cmd_finish'
 
 def main():
     sm_top = smach.StateMachine(outcomes = ['finish_sm_top'])
@@ -88,7 +92,7 @@ def main():
                 'LISTEN',
                 Listen(),
                 transitions = {'listen_success':'EXE_COMMAND',
-                               'listen_failed':'LISTEN'},
+                               'listen_failure':'LISTEN'},
                 remapping = {'cmd_output':'cmd_name'})
 
         smach.StateMachine.add(

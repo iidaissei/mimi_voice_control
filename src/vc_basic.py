@@ -87,8 +87,6 @@ class Event(smach.State):
         smach.State.__init__(self,
                              outcomes = ['finish_event', 'finish_voice_control'],
                              input_keys = ['cmd_input'])
-        # Publisher
-        self.pub_follow_req = rospy.Publisher('/chase/request', String, queue_size = 1)
         # Survice
         self.listen_cmd_srv = rospy.ServiceProxy('/listen_command', ListenCommand)
 
@@ -111,8 +109,8 @@ class Event(smach.State):
             speak("Welcome to Tokyo Disney Sea")
             bgmPlay('happy_time.mp3')
         elif userdata.cmd_input == 'finish voice control':
-            # playMessage('goodbye.wav')
-            speak('Goodbye')
+            playMessage('goodbye.wav')
+            # speak('Goodbye')
             return 'finish_voice_control'
         return 'finish_event'
 

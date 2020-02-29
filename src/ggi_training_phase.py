@@ -72,7 +72,7 @@ class Motion(smach.State):
         elif userdata.cmd_input == 'left face':
             self.bc.angleRotation(90)
         elif userdata.cmd_input == 'about face':
-            self.bc.angleRotation(-180)
+            self.bc.angleRotation(-165)
         elif userdata.cmd_input == 'follow me':
             speak('Start follow')
             self.pub_follow_req.publish('start')

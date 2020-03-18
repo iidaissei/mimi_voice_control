@@ -6,9 +6,8 @@
 # Date: 2020/02/24
 #---------------------------------------------------------------------
 
-# Python
 import sys
-# ROS
+
 import rospy
 import rosparam
 import smach
@@ -24,10 +23,7 @@ from common_function import BaseCarrier, speak
 
 class Listen(smach.State): 
     def __init__(self):
-        smach.State.__init__(self,
-                             outcomes = ['listen_failed',
-                                         'motion',
-                                         'event'],
+        smach.State.__init__(self, outcomes = ['listen_failed', 'motion', 'event'],
                              output_keys = ['cmd_output'])
         # Service
         self.listen_cmd_srv = rospy.ServiceProxy('/listen_command', ListenCommand)
@@ -49,8 +45,7 @@ class Listen(smach.State):
 
 class Motion(smach.State):
     def __init__(self):
-        smach.State.__init__(self,
-                             outcomes = ['finish_motion'],
+        smach.State.__init__(self, outcomes = ['finish_motion'],
                              input_keys = ['cmd_input'])
         # Publisher
         self.pub_follow_req = rospy.Publisher('/chase/request', String, queue_size = 1)
@@ -72,7 +67,7 @@ class Motion(smach.State):
         elif userdata.cmd_input == 'left face':
             self.bc.angleRotation(90)
         elif userdata.cmd_input == 'about face':
-            self.bc.angleRotation(-165)
+            self.bc.angleRotation(-167)
         elif userdata.cmd_input == 'follow me':
             speak('Start follow')
             self.pub_follow_req.publish('start')
@@ -86,8 +81,7 @@ class Motion(smach.State):
 
 class Event(smach.State):
     def __init__(self):
-        smach.State.__init__(self,
-                             outcomes = ['finish_event', 'finish_training'],
+        smach.State.__init__(self, outcomes = ['finish_event', 'finish_training'],
                              input_keys = ['cmd_input'])
         # Survice
         self.ggi_learning_srv = rospy.ServiceProxy('/ggi_learning', GgiLearning)
@@ -129,26 +123,20 @@ class GgiTrainingServer():
     def startSM(self, req):
         sm_top = smach.StateMachine(outcomes = ['finish_sm_top'])
         with sm_top:
-            smach.StateMachine.add(
-                    'LISTEN',
-                    Listen(),
-                    transitions = {'listen_failed':'LISTEN',
-                                   'motion':'MOTION',
-                                   'event':'EVENT'},
-                    remapping = {'cmd_output':'cmd_name'})
+            smach.StateMachine.add('LISTEN', Listen(),
+                                   transitions = {'listen_failed':'LISTEN',
+                                                  'motion':'MOTION',
+                                                  'event':'EVENT'},
+                                   remapping = {'cmd_output':'cmd_name'})
 
-            smach.StateMachine.add(
-                    'MOTION',
-                    Motion(),
-                    transitions = {'finish_motion':'LISTEN'},
-                    remapping = {'cmd_input':'cmd_name'})
+            smach.StateMachine.add('MOTION', Motion(),
+                                   transitions = {'finish_motion':'LISTEN'},
+                                   remapping = {'cmd_input':'cmd_name'})
 
-            smach.StateMachine.add(
-                    'EVENT',
-                    Event(),
-                    transitions = {'finish_event':'LISTEN',
-                                   'finish_training':'finish_sm_top'},
-                    remapping = {'cmd_input':'cmd_name'})
+            smach.StateMachine.add('EVENT', Event(),
+                                   transitions = {'finish_event':'LISTEN',
+                                                  'finish_training':'finish_sm_top'},
+                                   remapping = {'cmd_input':'cmd_name'})
 
         outcome = sm_top.execute()
         return EmptyResponse()

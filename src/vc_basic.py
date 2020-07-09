@@ -87,7 +87,7 @@ class Event(smach.State):
         rospy.loginfo('Executing state: EVENT')
         if userdata.cmd_input == 'what is the date today':
             date = getDate()
-            speak("It's " + date)
+            speak("Today is " + date)
         elif userdata.cmd_input == 'what time is it':
             time = getTime()
             speak("It's " + time)
